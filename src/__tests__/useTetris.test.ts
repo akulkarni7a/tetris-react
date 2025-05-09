@@ -135,3 +135,73 @@ describe('useTetris', () => {
     });
   });
 });
+
+describe('useTetris - Hardcore Mode', () => {
+  it('toggles hardcore mode', () => {
+    const { result } = renderHook(() => useTetris());
+    expect(result.current.isHardcoreMode).toBe(false);
+
+    act(() => {
+      result.current.toggleHardcoreMode();
+    });
+    expect(result.current.isHardcoreMode).toBe(true);
+
+    act(() => {
+      result.current.toggleHardcoreMode();
+    });
+    expect(result.current.isHardcoreMode).toBe(false);
+  });
+
+  it('starts game with Hardcore speed when hardcore mode is enabled', () => {
+    const { result } = renderHook(() => useTetris());
+    act(() => {
+      result.current.toggleHardcoreMode();
+    });
+    act(() => {
+      result.current.startGame();
+    });
+    // TickSpeed.Hardcore is 40
+    expect(result.current.tickSpeed).toBe(40);
+  });
+
+  it('keeps Hardcore speed on ArrowDown key press when hardcore mode is enabled', () => {
+    const { result } = renderHook(() => useTetris());
+    act(() => {
+      result.current.toggleHardcoreMode();
+    });
+    act(() => {
+      result.current.startGame();
+    });
+
+    const event = new KeyboardEvent('keydown', { key: 'ArrowDown' });
+    act(() => {
+      document.dispatchEvent(event);
+    });
+    
+    // TickSpeed.Hardcore is 40
+    expect(result.current.tickSpeed).toBe(40);
+  });
+
+  it('reverts to Hardcore speed on ArrowDown key release when hardcore mode is enabled', () => {
+    const { result } = renderHook(() => useTetris());
+    act(() => {
+      result.current.toggleHardcoreMode();
+    });
+    act(() => {
+      result.current.startGame();
+    });
+
+    const eventKeyDown = new KeyboardEvent('keydown', { key: 'ArrowDown' });
+    act(() => {
+      document.dispatchEvent(eventKeyDown);
+    });
+    
+    const eventKeyUp = new KeyboardEvent('keyup', { key: 'ArrowDown' });
+    act(() => {
+      document.dispatchEvent(eventKeyUp);
+    });
+
+    // TickSpeed.Hardcore is 40
+    expect(result.current.tickSpeed).toBe(40);
+  });
+});

@@ -27,6 +27,7 @@ enum TickSpeed {
   Normal = 800,
   Sliding = 100,
   Fast = 50,
+  Hardcore = 40,
 }
 
 // main function. todo: add comments
@@ -36,6 +37,7 @@ export function useTetris() {
   const [isCommitting, setIsCommitting] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [tickSpeed, setTickSpeed] = useState<TickSpeed | null>(null);
+  const [isHardcoreMode, setIsHardcoreMode] = useState(false);
 
   const [
     { board, droppingRow, droppingColumn, droppingBlock, droppingShape },
@@ -52,9 +54,9 @@ export function useTetris() {
     setUpcomingBlocks(startingBlocks);
     setIsCommitting(false);
     setIsPlaying(true);
-    setTickSpeed(TickSpeed.Normal);
+    setTickSpeed(isHardcoreMode ? TickSpeed.Hardcore : TickSpeed.Normal);
     dispatchBoardState({ type: 'start' });
-  }, [dispatchBoardState]);
+  }, [dispatchBoardState, isHardcoreMode]);
 
   const commitPosition = useCallback(() => {
     if (!hasCollisions(board, droppingShape, droppingRow + 1, droppingColumn)) {
@@ -109,6 +111,10 @@ export function useTetris() {
     upcomingBlocks,
     score,
   ]);
+
+  const toggleHardcoreMode = useCallback(() => {
+    setIsHardcoreMode((prev) => !prev);
+  }, [setIsHardcoreMode]);
 
   const gameTick = useCallback(() => {
     if (isCommitting) {
@@ -169,7 +175,7 @@ export function useTetris() {
       }
 
       if (event.key === 'ArrowDown') {
-        setTickSpeed(TickSpeed.Fast);
+        setTickSpeed(isHardcoreMode ? TickSpeed.Hardcore : TickSpeed.Fast);
       }
 
       if (event.key === 'ArrowUp') {
@@ -192,7 +198,7 @@ export function useTetris() {
 
     const handleKeyUp = (event: KeyboardEvent) => {
       if (event.key === 'ArrowDown') {
-        setTickSpeed(TickSpeed.Normal);
+        setTickSpeed(isHardcoreMode ? TickSpeed.Hardcore : TickSpeed.Normal);
       }
 
       if (event.key === 'ArrowLeft') {
@@ -212,9 +218,9 @@ export function useTetris() {
       document.removeEventListener('keydown', handleKeyDown);
       document.removeEventListener('keyup', handleKeyUp);
       clearInterval(moveIntervalID);
-      setTickSpeed(TickSpeed.Normal);
+      setTickSpeed(isHardcoreMode ? TickSpeed.Hardcore : TickSpeed.Normal);
     };
-  }, [dispatchBoardState, isPlaying]);
+  }, [dispatchBoardState, isPlaying, isHardcoreMode]);
 
   const renderedBoard = structuredClone(board) as BoardShape;
   if (isPlaying) {
@@ -234,6 +240,10 @@ export function useTetris() {
     score,
     upcomingBlocks,
     highScores: GetHighScores(),
+    isHardcoreMode,
+    toggleHardcoreMode,
+    // Exposed for testing purposes
+    tickSpeed,
   };
 }
 
