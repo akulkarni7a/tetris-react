@@ -3,33 +3,35 @@ import      {Block, BlockShape, BoardShape, EmptyCell, SHAPES } from '../types';
 import {  useInterval } from './useInterval';
 import { useTetrisBoard, hasCollisions, BOARD_HEIGHT, getEmptyBoard, getRandomBlock,} from './useTetrisBoard';
 
-const max_High_scores = 10;
+const MAX_HIGH_SCORES = 10;
 
-// Function... seems self explanatory to me 
-export function saveHighScore(score: number): void {
+// Saves the current score to local storage, maintaining a list of the top MAX_HIGH_SCORES.
+export function saveHighScores(score: number): void {
   const existingScores = JSON.parse(localStorage.getItem('highScores') || '[]');
   existingScores.push(score);
   const updatedScores = existingScores.sort((a: number, b: number) => b - a)
-    .slice(0, max_High_scores);
+    .slice(0, MAX_HIGH_SCORES);
     localStorage.setItem('highScores', JSON.stringify(updatedScores));
 }
 
-// Function... also self explanatory 
-export function GetHighScores(): number[] {
+// Retrieves the list of high scores from local storage, sorted in descending order.
+export function getHighScores(): number[] {
       try { const scores = JSON.parse(localStorage.getItem('highScores') || '[]');
-    return Array.isArray(scores) ? scores.sort((a, b) => b - a).slice(0, max_High_scores) : [];
+    return Array.isArray(scores) ? scores.sort((a, b) => b - a).slice(0, MAX_HIGH_SCORES) : [];
   } catch {return [];
   }
 }
 
-// this does something with the board, but I'm not sure what
+// Defines the different speeds for the game's tick interval, affecting how fast blocks drop.
 enum TickSpeed {
-  Normal = 800,
-  Sliding = 100,
-  Fast = 50,
+  Normal = 800, // Standard falling speed.
+  Sliding = 100, // Speed when a block is about to lock, allowing quick horizontal adjustments.
+  Fast = 50, // Speed when the player actively presses the "down" key.
 }
 
-// main function. todo: add comments
+// Custom React hook to manage the Tetris game logic and state.
+// This includes handling the game board, the falling tetrominoes, player score,
+// upcoming blocks, game status (playing/paused), and player input.
 export function useTetris() {
   const [score, setScore] = useState(0);
   const [upcomingBlocks, setUpcomingBlocks] = useState<Block[]>([]);
@@ -85,7 +87,7 @@ export function useTetris() {
     newUpcomingBlocks.unshift(getRandomBlock());
 
     if (hasCollisions(board, SHAPES[newBlock].shape, 0, 3)) {
-      saveHighScore(score);
+      saveHighScores(score);
       setIsPlaying(false);
       setTickSpeed(null);
     } else {
@@ -233,7 +235,7 @@ export function useTetris() {
     isPlaying,
     score,
     upcomingBlocks,
-    highScores: GetHighScores(),
+    highScores: getHighScores(),
   };
 }
 
