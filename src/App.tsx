@@ -16,7 +16,8 @@ function App() {
           <UpcomingBlocks upcomingBlocks={upcomingBlocks} />
         ) : (
           <>
-            <button onClick={startGame}>New Game</button>
+            <button onClick={() => startGame(false)}>New Game</button>
+            <button onClick={() => startGame(true)}>Hard Mode</button>
             <HighScores />
           </>
         )}
