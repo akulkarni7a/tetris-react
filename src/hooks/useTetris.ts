@@ -25,9 +25,9 @@ export function GetHighScores(): number[] {
 // this does something with the board, but I'm not sure what
 enum TickSpeed {
   Normal = 800,
-  Hard = 400,
   Sliding = 100,
   Fast = 50,
+  Hard = 80,
 }
 
 // main function. todo: add comments
@@ -37,14 +37,14 @@ export function useTetris() {
   const [isCommitting, setIsCommitting] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [tickSpeed, setTickSpeed] = useState<TickSpeed | null>(null);
-  const [isHardMode, setIsHardMode] = useState(false);
+  const [hardMode, setHardMode] = useState(false);
 
   const [
     { board, droppingRow, droppingColumn, droppingBlock, droppingShape },
     dispatchBoardState,
   ] = useTetrisBoard();
 
-  const startGame = useCallback((hardMode: boolean = false) => {
+  const startGame = useCallback((isHardMode?: boolean) => {
     const startingBlocks = [
       getRandomBlock(),
       getRandomBlock(),
@@ -54,10 +54,15 @@ export function useTetris() {
     setUpcomingBlocks(startingBlocks);
     setIsCommitting(false);
     setIsPlaying(true);
-    setIsHardMode(hardMode);
-    setTickSpeed(hardMode ? TickSpeed.Hard : TickSpeed.Normal);
+    if (isHardMode) {
+      setHardMode(true);
+      setTickSpeed(TickSpeed.Hard);
+    } else {
+      setHardMode(false);
+      setTickSpeed(TickSpeed.Normal);
+    }
     dispatchBoardState({ type: 'start' });
-  }, [dispatchBoardState, setIsHardMode, setTickSpeed]);
+  }, [dispatchBoardState]);
 
   const commitPosition = useCallback(() => {
     if (!hasCollisions(board, droppingShape, droppingRow + 1, droppingColumn)) {
@@ -92,7 +97,7 @@ export function useTetris() {
       setIsPlaying(false);
       setTickSpeed(null);
     } else {
-      setTickSpeed(isHardMode ? TickSpeed.Hard : TickSpeed.Normal);
+      setTickSpeed(TickSpeed.Normal);
     }
     setUpcomingBlocks(newUpcomingBlocks);
     setScore((prevScore) => prevScore + getPoints(numCleared));
@@ -111,7 +116,6 @@ export function useTetris() {
     droppingShape,
     upcomingBlocks,
     score,
-    isHardMode, // Added isHardMode to dependency array
   ]);
 
   const gameTick = useCallback(() => {
@@ -173,7 +177,7 @@ export function useTetris() {
       }
 
       if (event.key === 'ArrowDown') {
-        if (!isHardMode) {
+        if (!hardMode) {
           setTickSpeed(TickSpeed.Fast);
         }
       }
@@ -198,7 +202,11 @@ export function useTetris() {
 
     const handleKeyUp = (event: KeyboardEvent) => {
       if (event.key === 'ArrowDown') {
-        setTickSpeed(isHardMode ? TickSpeed.Hard : TickSpeed.Normal);
+        if (hardMode) {
+          setTickSpeed(TickSpeed.Hard);
+        } else {
+          setTickSpeed(TickSpeed.Normal);
+        }
       }
 
       if (event.key === 'ArrowLeft') {
@@ -218,9 +226,9 @@ export function useTetris() {
       document.removeEventListener('keydown', handleKeyDown);
       document.removeEventListener('keyup', handleKeyUp);
       clearInterval(moveIntervalID);
-      // tickSpeed is managed by startGame, commitPosition, and key handlers, not here.
+      setTickSpeed(hardMode ? TickSpeed.Hard : TickSpeed.Normal);
     };
-  }, [dispatchBoardState, isPlaying, isHardMode]);
+  }, [dispatchBoardState, isPlaying, hardMode]);
 
   const renderedBoard = structuredClone(board) as BoardShape;
   if (isPlaying) {
@@ -240,6 +248,7 @@ export function useTetris() {
     score,
     upcomingBlocks,
     highScores: GetHighScores(),
+    tickSpeed,
   };
 }
 

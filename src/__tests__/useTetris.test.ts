@@ -7,6 +7,7 @@ enum TickSpeed {
   Normal = 800,
   Sliding = 100,
   Fast = 50,
+  Hard = 80,
 }
 
 // Mock the entire useTetrisBoard module
@@ -73,6 +74,77 @@ describe('useTetris', () => {
       expect(result.current.score).toBe(0);
       expect(result.current.upcomingBlocks.length).toBeGreaterThan(0);
       expect(result.current.board).toBeDefined();
+    });
+  });
+
+  describe('Hard Mode', () => {
+    it('sets initial speed to Normal when startGame is called with isHardMode false', () => {
+      const { result } = renderHook(() => useTetris());
+      act(() => {
+        result.current.startGame(false);
+      });
+      expect(result.current.tickSpeed).toBe(TickSpeed.Normal);
+    });
+
+    it('sets initial speed to Normal when startGame is called with isHardMode undefined', () => {
+      const { result } = renderHook(() => useTetris());
+      act(() => {
+        result.current.startGame();
+      });
+      expect(result.current.tickSpeed).toBe(TickSpeed.Normal);
+    });
+
+    it('sets initial speed to Hard when startGame is called with isHardMode true', () => {
+      const { result } = renderHook(() => useTetris());
+      act(() => {
+        result.current.startGame(true);
+      });
+      expect(result.current.tickSpeed).toBe(TickSpeed.Hard);
+    });
+
+    it('ArrowDown key behavior in normal mode', () => {
+      const { result } = renderHook(() => useTetris());
+      act(() => {
+        result.current.startGame(false); // Start in normal mode
+      });
+
+      // Simulate ArrowDown key press
+      act(() => {
+        const event = new KeyboardEvent('keydown', { key: 'ArrowDown' });
+        document.dispatchEvent(event);
+      });
+      expect(result.current.tickSpeed).toBe(TickSpeed.Fast);
+
+      // Simulate ArrowDown key release
+      act(() => {
+        const event = new KeyboardEvent('keyup', { key: 'ArrowDown' });
+        document.dispatchEvent(event);
+      });
+      expect(result.current.tickSpeed).toBe(TickSpeed.Normal);
+    });
+
+    it('ArrowDown key behavior in hard mode', () => {
+      const { result } = renderHook(() => useTetris());
+      act(() => {
+        result.current.startGame(true); // Start in hard mode
+      });
+      expect(result.current.tickSpeed).toBe(TickSpeed.Hard);
+
+      // Simulate ArrowDown key press
+      act(() => {
+        const event = new KeyboardEvent('keydown', { key: 'ArrowDown' });
+        document.dispatchEvent(event);
+      });
+      // Speed should remain Hard
+      expect(result.current.tickSpeed).toBe(TickSpeed.Hard);
+
+      // Simulate ArrowDown key release
+      act(() => {
+        const event = new KeyboardEvent('keyup', { key: 'ArrowDown' });
+        document.dispatchEvent(event);
+      });
+      // Speed should remain Hard
+      expect(result.current.tickSpeed).toBe(TickSpeed.Hard);
     });
   });
 
