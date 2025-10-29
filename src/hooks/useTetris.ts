@@ -24,7 +24,7 @@ export function GetHighScores(): number[] {
 
 // this does something with the board, but I'm not sure what
 enum TickSpeed {
-  Normal = 800,
+  Normal = 400,
   Sliding = 100,
   Fast = 50,
 }
